@@ -471,6 +471,7 @@ class Qwen3TTSModel:
         self,
         text: Union[str, List[str]],
         language: Union[str, List[str]] = None,
+        instruct: Optional[Union[str, List[str]]] = None,
         ref_audio: Optional[Union[AudioLike, List[AudioLike]]] = None,
         ref_text: Optional[Union[str, List[Optional[str]]]] = None,
         x_vector_only_mode: Union[bool, List[bool]] = False,
@@ -501,6 +502,8 @@ class Qwen3TTSModel:
                 Text(s) to synthesize.
             language:
                 Language(s) for each sample.
+            instruct:
+                Optional instruction(s) describing desired style. Empty string is allowed (treated as no instruction).
             ref_audio:
                 Reference audio(s) for prompt building. Required if voice_clone_prompt is not provided.
             ref_text:
@@ -552,13 +555,16 @@ class Qwen3TTSModel:
                 f"tts_model_type: {self.model.tts_model_type}\n"
                 "does not support generate_voice_clone, Please check Model Card or Readme for more details."
             )
-        
+
         texts = self._ensure_list(text)
         languages = self._ensure_list(language) if isinstance(language, list) else ([language] * len(texts) if language is not None else ["Auto"] * len(texts))
+        instructs = self._ensure_list(instruct) if isinstance(instruct, list) else ([instruct] * len(texts) if instruct is not None else [None] * len(texts))
         if len(languages) == 1 and len(texts) > 1:
             languages = languages * len(texts)
-        if len(texts) != len(languages):
-            raise ValueError(f"Batch size mismatch: text={len(texts)}, language={len(languages)}")
+        if len(instructs) == 1 and len(texts) > 1:
+            instructs = instructs * len(texts)
+        if not (len(texts) == len(languages) == len(instructs)):
+            raise ValueError(f"Batch size mismatch: text={len(texts)}, language={len(languages)}, instruct={len(instructs)}")
 
         self._validate_languages(languages)
 
@@ -588,6 +594,13 @@ class Qwen3TTSModel:
         input_texts = [self._build_assistant_text(t) for t in texts]
         input_ids = self._tokenize_texts(input_texts)
 
+        instruct_ids: List[Optional[torch.Tensor]] = []
+        for ins in instructs:
+            if ins is None or ins == "":
+                instruct_ids.append(None)
+            else:
+                instruct_ids.append(self._tokenize_texts([self._build_instruct_text(ins)])[0])
+
         ref_ids = None
         if ref_texts_for_ids is not None:
             ref_ids = []
@@ -602,6 +615,7 @@ class Qwen3TTSModel:
 
         talker_codes_list, _ = self.model.generate(
             input_ids=input_ids,
+            instruct_ids=instruct_ids,
             ref_ids=ref_ids,
             voice_clone_prompt=voice_clone_prompt_dict,
             languages=languages,

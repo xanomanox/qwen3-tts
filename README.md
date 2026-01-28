@@ -240,7 +240,9 @@ sf.write("output_voice_design_2.wav", wavs[1], sr)
 
 #### Voice Clone
 
-For the voice clone model (`Qwen3-TTS-12Hz-1.7B/0.6B-Base`), to clone a voice and synthesize new content, you just need to provide a reference audio clip (`ref_audio`) along with its transcript (`ref_text`). `ref_audio` can be a local file path, a URL, a base64 string, or a `(numpy_array, sample_rate)` tuple. If you set `x_vector_only_mode=True`, only the speaker embedding is used so `ref_text` is not required, but cloning quality may be reduced.
+For the voice clone model (`Qwen3-TTS-12Hz-1.7B/0.6B-Base`), to clone a voice and synthesize new content, you just need to provide a reference audio clip (`ref_audio`) along with its transcript (`ref_text`). `ref_audio` can be a local file path, a URL, a base64 string, or a `(numpy_array, sample_rate)` tuple. If you set `x_vector_only_mode=True`, only the speaker embedding is used so `ref_text` is not required, but cloning quality may be reduced. You can also provide an optional `instruct` string to nudge the speaking style.
+
+> **Note on instructions:** Instruction adherence in voice cloning depends on how the **base checkpoint** was trained. Some base checkpoints may ignore or only weakly follow instructions, especially if they were not explicitly trained for instruction following.
 
 ```python
 import torch
@@ -260,6 +262,7 @@ ref_text  = "Okay. Yeah. I resent you. I love you. I respect you. But you know w
 wavs, sr = model.generate_voice_clone(
     text="I am solving the equation: x = [-b ± √(b²-4ac)] / 2a? Nobody can — it's a disaster (◍•͈⌔•͈◍), very sad!",
     language="English",
+    instruct="Speak softly and cautiously, with a slightly breathy tone.",
     ref_audio=ref_audio,
     ref_text=ref_text,
 )
