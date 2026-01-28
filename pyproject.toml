@@ -28,8 +28,12 @@ dependencies = [
   "soundfile",
   "sox",
   "onnxruntime",
+  "onnxruntime-gpu",
   "einops",
 ]
+
+[project.optional-dependencies]
+audio = ["simpleaudio"]
 
 [project.urls]
 Homepage = "https://github.com/Qwen/Qwen3-TTS"
