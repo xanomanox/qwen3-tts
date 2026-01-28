@@ -405,6 +405,11 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                                 lines=4,
                                 placeholder="Enter text to synthesize (输入要合成的文本).",
                             )
+                            instruct_in = gr.Textbox(
+                                label="Instruction (可选风格指令)",
+                                lines=2,
+                                placeholder="Optional: add style instructions (可选：填写风格指令).",
+                            )
                             lang_in = gr.Dropdown(
                                 label="Language (语种)",
                                 choices=lang_choices_disp,
@@ -417,7 +422,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                             audio_out = gr.Audio(label="Output Audio (合成结果)", type="numpy")
                             err = gr.Textbox(label="Status (状态)", lines=2)
 
-                    def run_voice_clone(ref_aud, ref_txt: str, use_xvec: bool, text: str, lang_disp: str):
+                    def run_voice_clone(ref_aud, ref_txt: str, use_xvec: bool, text: str, instruct: str, lang_disp: str):
                         try:
                             if not text or not text.strip():
                                 return None, "Target text is required (必须填写待合成文本)."
@@ -434,6 +439,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                             wavs, sr = tts.generate_voice_clone(
                                 text=text.strip(),
                                 language=language,
+                                instruct=(instruct.strip() if instruct else None),
                                 ref_audio=at,
                                 ref_text=(ref_txt.strip() if ref_txt else None),
                                 x_vector_only_mode=bool(use_xvec),
@@ -445,7 +451,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
 
                     btn.click(
                         run_voice_clone,
-                        inputs=[ref_audio, ref_text, xvec_only, text_in, lang_in],
+                        inputs=[ref_audio, ref_text, xvec_only, text_in, instruct_in, lang_in],
                         outputs=[audio_out, err],
                     )
 
@@ -486,6 +492,11 @@ Upload a previously saved voice file, then synthesize new text.
                                 lines=4,
                                 placeholder="Enter text to synthesize (输入要合成的文本).",
                             )
+                            instruct_in2 = gr.Textbox(
+                                label="Instruction (可选风格指令)",
+                                lines=2,
+                                placeholder="Optional: add style instructions (可选：填写风格指令).",
+                            )
                             lang_in2 = gr.Dropdown(
                                 label="Language (语种)",
                                 choices=lang_choices_disp,
@@ -523,7 +534,7 @@ Upload a previously saved voice file, then synthesize new text.
                         except Exception as e:
                             return None, f"{type(e).__name__}: {e}"
 
-                    def load_prompt_and_gen(file_obj, text: str, lang_disp: str):
+                    def load_prompt_and_gen(file_obj, text: str, instruct: str, lang_disp: str):
                         try:
                             if file_obj is None:
                                 return None, "Voice file is required (必须上传音色文件)."
@@ -567,6 +578,7 @@ Upload a previously saved voice file, then synthesize new text.
                             wavs, sr = tts.generate_voice_clone(
                                 text=text.strip(),
                                 language=language,
+                                instruct=(instruct.strip() if instruct else None),
                                 voice_clone_prompt=items,
                                 **kwargs,
                             )
@@ -579,7 +591,11 @@ Upload a previously saved voice file, then synthesize new text.
                             )
 
                     save_btn.click(save_prompt, inputs=[ref_audio_s, ref_text_s, xvec_only_s], outputs=[prompt_file_out, err2])
-                    gen_btn2.click(load_prompt_and_gen, inputs=[prompt_file_in, text_in2, lang_in2], outputs=[audio_out2, err2])
+                    gen_btn2.click(
+                        load_prompt_and_gen,
+                        inputs=[prompt_file_in, text_in2, instruct_in2, lang_in2],
+                        outputs=[audio_out2, err2],
+                    )
 
         gr.Markdown(
             """
