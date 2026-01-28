@@ -33,11 +33,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-audio = ["simpleaudio"]
 
 [project.urls]
-Homepage = "https://github.com/Qwen/Qwen3-TTS"
-Repository = "https://github.com/Qwen/Qwen3-TTS"
+Homepage = "https://github.com/xanomanox/Qwen3-TTS"
+Repository = "https://github.com/xanomanox/Qwen3-TTS"
 
 [project.scripts]
 qwen-tts-demo = "qwen_tts.cli.demo:main"
