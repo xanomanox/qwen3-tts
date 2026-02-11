@@ -15,9 +15,10 @@ with open(ref_text_path, "r") as f:
     ref_text = f.read().strip()
 
 wavs, sr = model.generate_voice_clone(
-    text="This is the most amazing technology I have ever seen in my life!",
+    text="You can't do that or you'll blow the reactor and fry the ship ... and us!",
+    instruct="Speak very slowly and angrily, with a loud and forceful tone, and just a little bit of panic.",
     language="English",
     ref_audio=ref_audio,
     ref_text=ref_text,
 )
-sf.write("output_voice_clone.wav", wavs[0], sr)
+sf.write("instr_clone.wav", wavs[0], sr)

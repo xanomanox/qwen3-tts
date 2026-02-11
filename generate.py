@@ -16,7 +16,7 @@ instruct_source = input("Enter the path to the instruction text file: ").strip()
 with open(instruct_source, "r") as f:
     instruction = f.read().strip()
 
-basename = "oa_script"
+basename = "oa2_script"
 # um_generations = 50
 
 for idx, sentence in enumerate(sentences):
